@@ -55,8 +55,6 @@ class Member():
     def __str__(self):
         return self.name
 
-
-
     def get_group(self):
         return self.group
 
@@ -126,6 +124,8 @@ for memberfile in txt.memberFiles:
     txt.add_member(Member(txt.name, txtpath, memberfile))
 
 print(txt.print_members())
+photos = mx.get_members() + txt.get_members()
+print(photos[0])
 
 
 display = pyglet.canvas.get_display()
@@ -147,11 +147,13 @@ fit_on_x = floor(windowsize[0] / 250)
 print("fit on x", fit_on_x)
 
 sprites = []
+sprite_locs = []
 x = 0
 y = 0
 # 240x320
 for i, photo in enumerate(photos):
     sprites.append(pyglet.sprite.Sprite(img=photo, batch=batch, x=x, y=y))
+    sprite_locs.append((x, y))
     if i % fit_on_x == 4:
         x = 0
         y += 330
@@ -171,12 +173,6 @@ def on_draw():
         # i += 280
     # image2.blit(100, 100)
     
-# def update(dt):
-#     # Move 10 pixels per second
-#     sprite.x += dt * 10
-
-# Call update 60 times a second
-# pyglet.clock.schedule_interval(update, 1/60.)
 
 @window.event
 def on_key_press(symbol, modifiers):
@@ -195,5 +191,19 @@ def on_key_press(symbol, modifiers):
 def on_mouse_press(x, y, button, modifiers):
     if button == mouse.LEFT:
         print('The left mouse button was pressed.')
+        print(x, y)
+        if locate_picture(x, y):
+            print("The picture in question is", locate_picture(x, y))
+        else:
+            print("Please click on a picture.")
+
+def locate_picture(mouse_x, mouse_y):
+    for min_x, min_y in sprite_locs:
+        max_x = min_x + 240
+        max_y = min_y + 320
+        if min_x < mouse_x and max_x > mouse_x and min_y < mouse_y and max_y > mouse_y:
+            i = sprite_locs.index((min_x, min_y))
+            return(photos[i])
+        else: False
 
 pyglet.app.run() 
