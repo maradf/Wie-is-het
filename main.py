@@ -2,6 +2,8 @@ import pyglet
 from pyglet.window import key
 from pyglet.window import mouse
 from os import listdir
+import random
+from math import floor
 
 class Group():
     # Variable depth is for if the folder is embedded in a number of folders. 
@@ -14,6 +16,9 @@ class Group():
 
     def __str__(self):
         return self.name
+
+    def __len__(self):
+        return len(members)
     
     def add_member(self, member):
         self.members.append(member)
@@ -40,11 +45,17 @@ class Member():
         self.group = group
         self.folder = folder
         self.filename = filename
-        self.image = pyglet.resource.image(folder + filename)
+        self.image = pyglet.image.load(folder + filename)
         self.name = filename.split(".")[0]
+        self.width = self.image.width
+        self.height = self.image.height
+        self.blit_to_texture = self.image.blit_to_texture
+        self.get_texture = self.image.get_texture
 
     def __str__(self):
         return self.name
+
+
 
     def get_group(self):
         return self.group
@@ -116,7 +127,7 @@ for memberfile in txt.memberFiles:
 
 print(txt.print_members())
 
-"""
+
 display = pyglet.canvas.get_display()
 display.get_screens()
 screens = display.get_screens()
@@ -125,12 +136,47 @@ window.set_minimum_size(320, 200)
 window.set_size(1280, 720)
 
 image = pyglet.resource.image('jungkook.jpg')
-image2 = pyglet.resource.image('scoups.jpg')
+bin = pyglet.image.atlas.TextureBin()
+# images = [bin.add(image) for image in mx.get_members()]
+batch = pyglet.graphics.Batch()
+photos = mx.get_members() + txt.get_members()
+random.shuffle(photos)
+windowsize = window.get_size()
+num_photos = len(photos)
+fit_on_x = floor(windowsize[0] / 250)
+print("fit on x", fit_on_x)
+
+sprites = []
+x = 0
+y = 0
+# 240x320
+for i, photo in enumerate(photos):
+    sprites.append(pyglet.sprite.Sprite(img=photo, batch=batch, x=x, y=y))
+    if i % fit_on_x == 4:
+        x = 0
+        y += 330
+    else:
+        x += 250
+        
+window.set_size(1280, y + 330)
+# sprites = [pyglet.sprite.Sprite(img=image, batch=batch, x=i*280) for i, image, in enumerate(photos)]
+# sprite = sprites[0]
+# image2 = pyglet.resource.image('scoups.jpg')
 @window.event
 def on_draw():
     window.clear()
-    image.blit(10, 100)
-    image2.blit(100, 100)
+    # i = 0
+    # for sprite in sprites:
+    batch.draw()
+        # i += 280
+    # image2.blit(100, 100)
+    
+# def update(dt):
+#     # Move 10 pixels per second
+#     sprite.x += dt * 10
+
+# Call update 60 times a second
+# pyglet.clock.schedule_interval(update, 1/60.)
 
 @window.event
 def on_key_press(symbol, modifiers):
@@ -150,4 +196,4 @@ def on_mouse_press(x, y, button, modifiers):
     if button == mouse.LEFT:
         print('The left mouse button was pressed.')
 
-pyglet.app.run() """ 
+pyglet.app.run() 
