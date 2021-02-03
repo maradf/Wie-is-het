@@ -6,13 +6,27 @@ import random
 from math import floor
 
 class Group():
-    # Variable depth is for if the folder is embedded in a number of folders. 
-    # Depth is the number of folders it is embedded. Standard 0.
-    def __init__(self, path, depth=1):
-        self.path = path
-        self.name = path.split("/")[depth]
+    """
+    Class Group. Contains all information of a single group.
+
+    Init variables:
+    path (str): Path leading to the folder containing all data of the group. Does not include folder name itself.
+    name (str): name of the group, and name of the folder.
+    """
+    
+    def __init__(self, path, name):
+        self.path = path + name + "/"
+        self.name = name
         self.members = []
-        self.memberFiles = listdir(path)
+        self.memberFiles = listdir(self.path)
+        self.load_members()
+
+    def load_members(self):
+        """
+        Loads all members/information from the folder. 
+        """
+        for memberfile in self.memberFiles:
+            self.add_member(Member(self.name, self.path, memberfile))
 
     def __str__(self):
         return self.name
@@ -21,32 +35,48 @@ class Group():
         return len(members)
     
     def add_member(self, member):
+        """ Add member to group"""
         self.members.append(member)
     
     def remove_member(self, member):
+        """ If member exists in group, remove it"""
         if member in self.members:
             self.members.remove(member)
     
     def get_members(self):
+        """ Get all members of the group"""
         return self.members
 
     def print_members(self):
+        """ Prints the names of all members"""
         return [member.name for member in self.members]
 
-
     def get_member_files(self):
+        """ Gets the memberfiles."""
         return self.memberFiles
 
     def get_path(self):
+        """ Gets self.path"""
         return self.path
 
 class Member():
+    """
+    Class Member. Contains all information of a single member.
+
+    Init variables:
+    group (str): Name of the group member belongs to.
+    folder (str): Folder in which the image is saved.
+    filename (str): Filename of the image.
+    """
     def __init__(self, group, folder, filename):
         self.group = group
         self.folder = folder
         self.filename = filename
         self.image = pyglet.image.load(folder + filename)
         self.name = filename.split(".")[0]
+
+        # The following variables were required for subsequent code to work
+        # as some functions require the image to have certain features
         self.width = self.image.width
         self.height = self.image.height
         self.blit_to_texture = self.image.blit_to_texture
@@ -105,74 +135,50 @@ class Board():
         return people, names
 
 path = "Groups/"
-mxpath = path + "Monsta X/"
-mx = Group(mxpath)
 
-txtpath = path + "TXT/"
-txt = Group(txtpath)
-
-# print(mx.path)
-print(mx)
-for memberfile in mx.memberFiles:
-    mx.add_member(Member(mx.name, mxpath, memberfile))
-
-print(mx.print_members())
-
-print(txt)
-# print(txt.memberFiles)
-for memberfile in txt.memberFiles:
-    txt.add_member(Member(txt.name, txtpath, memberfile))
-
-print(txt.print_members())
+# Set up MX and TXT data and shuffle
+mx = Group(path, "BTS")
+txt = Group(path, "Astro")
 photos = mx.get_members() + txt.get_members()
-print(photos[0])
+random.shuffle(photos)
 
-
+# Create display
 display = pyglet.canvas.get_display()
-display.get_screens()
 screens = display.get_screens()
 window = pyglet.window.Window(resizable=True, style='dialog', caption="Wie Is Het? K-Pop Edition")
 window.set_minimum_size(320, 200)
-window.set_size(1280, 720)
+window_width = 1280
+window.set_size(window_width, 720)
 
-image = pyglet.resource.image('jungkook.jpg')
-bin = pyglet.image.atlas.TextureBin()
-# images = [bin.add(image) for image in mx.get_members()]
+# Create batch
 batch = pyglet.graphics.Batch()
-photos = mx.get_members() + txt.get_members()
-random.shuffle(photos)
 windowsize = window.get_size()
 num_photos = len(photos)
-fit_on_x = floor(windowsize[0] / 250)
+fit_on_x = floor((windowsize[0] - 10) / 250)
 print("fit on x", fit_on_x)
 
+# Caclulate location for each sprite and save these values
 sprites = []
 sprite_locs = []
-x = 0
-y = 0
-# 240x320
+x = 10
+y = 10
 for i, photo in enumerate(photos):
     sprites.append(pyglet.sprite.Sprite(img=photo, batch=batch, x=x, y=y))
     sprite_locs.append((x, y))
-    if i % fit_on_x == 4:
-        x = 0
+    if (i + 1) % fit_on_x == 0:
+        x = 10
         y += 330
     else:
         x += 250
-        
-window.set_size(1280, y + 330)
-# sprites = [pyglet.sprite.Sprite(img=image, batch=batch, x=i*280) for i, image, in enumerate(photos)]
-# sprite = sprites[0]
-# image2 = pyglet.resource.image('scoups.jpg')
+
+# Set window height so that all images fit        
+window.set_size(window_width, y + 330)
+
+# Draw window
 @window.event
 def on_draw():
     window.clear()
-    # i = 0
-    # for sprite in sprites:
     batch.draw()
-        # i += 280
-    # image2.blit(100, 100)
-    
 
 @window.event
 def on_key_press(symbol, modifiers):
@@ -187,23 +193,37 @@ def on_key_press(symbol, modifiers):
     elif symbol == key.ENTER:
         print('The enter key was pressed.')
 
+# Events for when mouse button is pressed
 @window.event
 def on_mouse_press(x, y, button, modifiers):
     if button == mouse.LEFT:
-        print('The left mouse button was pressed.')
-        print(x, y)
-        if locate_picture(x, y):
-            print("The picture in question is", locate_picture(x, y))
+        person = locate_picture(x, y)
+        if person:
+            print("The picture in question is", person)
         else:
             print("Please click on a picture.")
 
 def locate_picture(mouse_x, mouse_y):
+    """
+    Checks which image was clicked in the window. 
+
+    Input: 
+    mouse_x (int): x coordinate of the mouse when the mouse press event happened
+    mouse_y (int): y coordinate of the mouse when the mouse press event happened
+
+    Output:
+    If a person was clicked:
+    Member: the member clicked by the user
+
+    If a person was not clicked: False (bool)
+    """
     for min_x, min_y in sprite_locs:
         max_x = min_x + 240
         max_y = min_y + 320
         if min_x < mouse_x and max_x > mouse_x and min_y < mouse_y and max_y > mouse_y:
             i = sprite_locs.index((min_x, min_y))
             return(photos[i])
-        else: False
+        else: 
+            False
 
 pyglet.app.run() 
