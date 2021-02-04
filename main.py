@@ -160,6 +160,7 @@ print("fit on x", fit_on_x)
 # Caclulate location for each sprite and save these values
 sprites = []
 sprite_locs = []
+sprites_rotated = [False for photo in photos]
 x = 10
 y = 10
 for i, photo in enumerate(photos):
@@ -197,9 +198,19 @@ def on_key_press(symbol, modifiers):
 @window.event
 def on_mouse_press(x, y, button, modifiers):
     if button == mouse.LEFT:
-        person = locate_picture(x, y)
-        if person:
-            print("The picture in question is", person)
+        i = locate_picture(x, y)
+        if i >= 0:
+            old_x, old_y = sprite_locs[i]
+            if not sprites_rotated[i]:
+                new_x = old_x + 240
+                new_y = old_y + 320
+                sprites[i].update(x=old_x+240, y=old_y+320, rotation=180)
+                sprites_rotated[i] = True
+            else:
+                sprites[i].update(x=old_x, y=old_y, rotation=0)
+                sprites_rotated[i] = False
+            sprites[i].draw()
+
         else:
             print("Please click on a picture.")
 
@@ -213,17 +224,15 @@ def locate_picture(mouse_x, mouse_y):
 
     Output:
     If a person was clicked:
-    Member: the member clicked by the user
+    i (int): the index of the member in sprites and photos
 
-    If a person was not clicked: False (bool)
+    If a person was not clicked: -1
     """
     for min_x, min_y in sprite_locs:
         max_x = min_x + 240
         max_y = min_y + 320
         if min_x < mouse_x and max_x > mouse_x and min_y < mouse_y and max_y > mouse_y:
             i = sprite_locs.index((min_x, min_y))
-            return(photos[i])
-        else: 
-            False
-
+            return i
+    return -1
 pyglet.app.run() 
