@@ -141,16 +141,30 @@ class Board():
 path = "Groups/"
 
 # Set up MX and TXT data and shuffle
-mx = Group(path, "BTS")
-txt = Group(path, "Astro")
-photos = mx.get_members() + txt.get_members()
+mx = Group(path, "Monsta X")
+astro = Group(path, "Astro")
+ateez = Group(path, "Ateez")
+photos = mx.get_members() + astro.get_members() + ateez.get_members()
 random.shuffle(photos)
+
+your_card = random.choice(photos)
+text_batch = pyglet.graphics.Batch()
+text_sprite = [pyglet.text.Label("Your card is:   ",
+                          font_name='Times New Roman',
+                          font_size=20,
+                          x=10, y=40, batch=text_batch),
+                pyglet.text.Label(your_card.name, font_name='Times New Roman',
+                          font_size=20,
+                          x=10, y=10, batch=text_batch)]
+                        #   anchor_x='center', anchor_y='center')
+text_sprite_width = max(text_sprite[0].content_width, text_sprite[1].content_width)
 
 scale = 0.5
 imx, imy = photos[0].size()
 imx *= scale
 imy *= scale
 imborder = 10
+bottom_border = 20
 
 
 # Create display
@@ -165,15 +179,19 @@ window.set_size(window_width, 720)
 batch = pyglet.graphics.Batch()
 windowsize = window.get_size()
 num_photos = len(photos)
-fit_on_x = floor((windowsize[0] - imborder) / imx)
-print("fit on x", fit_on_x)
+fit_on_x = floor((windowsize[0] - 2 * imborder) / (imx + imborder))
 
 # Caclulate location for each sprite and save these values
 sprites = []
 sprite_locs = []
 sprites_rotated = [False for photo in photos]
-x = 10
-y = 10
+x = imborder
+y = imborder
+
+your_card_im = pyglet.sprite.Sprite(img=your_card, batch=batch, x=x+text_sprite_width, y=y)
+your_card_im.update(scale=scale)
+y += imy + bottom_border
+
 for i, photo in enumerate(photos):
     sprites.append(pyglet.sprite.Sprite(img=photo, batch=batch, x=x, y=y))
     sprites[i].update(scale=scale)
@@ -184,14 +202,18 @@ for i, photo in enumerate(photos):
     else:
         x += imx + imborder
 
-# Set window height so that all images fit        
-# window.set_size(window_width, y + imy)
+# Set window height so that all images fit 
+window_height = y + imy + imborder
+window.set_size(window_width, int(window_height))
 
 # Draw window
 @window.event
 def on_draw():
     window.clear()
     batch.draw()
+    text_batch.draw()
+    # text_sprite.draw()
+    your_card_im.draw()
 
 @window.event
 def on_key_press(symbol, modifiers):
