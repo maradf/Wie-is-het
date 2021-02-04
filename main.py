@@ -2,6 +2,7 @@ import pyglet
 from pyglet.window import key
 from pyglet.window import mouse
 from os import listdir
+import os.path
 import random
 from math import floor
 
@@ -141,10 +142,30 @@ class Board():
 path = "Groups/"
 
 # Set up MX and TXT data and shuffle
-mx = Group(path, "Monsta X")
-astro = Group(path, "Astro")
-ateez = Group(path, "Ateez")
-photos = mx.get_members() + astro.get_members() + ateez.get_members()
+print("Hi, welcome to Wie is Het? Please enter the groups you would like to use for this game below, one by one. ")
+print("So, if you want to play a game using both Monsta X and GOT7, first type Monsta X, then press enter, then type GOT7, then press enter.")
+print("Please use the same capitalisation structure as the folders in your system.")
+print("Once you have added all the groups you want to add, type done")
+group_input = input("What group would you like to add first?\n")
+groups = []
+while group_input.lower() != "done":
+    if not os.path.exists(path + group_input + "/"):
+        print("\nSorry, I don't know the group " + group_input + ".")
+        group_input = input("Please try again.\n")
+    else:
+        groups.append(group_input)
+        if len(groups) == 1:
+            prints = group_input
+        else: 
+            prints = ', '.join(groups)
+        print("\nYour currently selected groups are: " + prints)
+    
+        group_input = input("What other group would you like to add? When you're done, please type done.\n")
+
+photos = []
+for group_name in groups:
+    group = Group(path, group_name)
+    photos += group.get_members()
 random.shuffle(photos)
 
 your_card = random.choice(photos)
@@ -269,4 +290,5 @@ def locate_picture(mouse_x, mouse_y):
             i = sprite_locs.index((min_x, min_y))
             return i
     return -1
+
 pyglet.app.run() 
