@@ -191,10 +191,10 @@ bottom_border = 20
 # Create display
 display = pyglet.canvas.get_display()
 screens = display.get_screens()
-window = pyglet.window.Window(resizable=True, style='dialog', caption="Wie Is Het? K-Pop Edition")
+window = pyglet.window.Window(fullscreen=True, style='dialog', caption="Wie Is Het? K-Pop Edition")
 window.set_minimum_size(320, 200)
 window_width = 1280
-window.set_size(window_width, 720)
+# window.set_size(window_width, 720)
 
 # Create batch
 batch = pyglet.graphics.Batch()
@@ -224,8 +224,8 @@ for i, photo in enumerate(photos):
         x += imx + imborder
 
 # Set window height so that all images fit 
-window_height = y + imy + imborder
-window.set_size(window_width, int(window_height))
+# window_height = y + imy + imborder
+# window.set_size(window_width, int(window_height))
 
 # Draw window
 @window.event
