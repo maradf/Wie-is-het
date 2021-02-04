@@ -77,6 +77,7 @@ class Member():
 
         # The following variables were required for subsequent code to work
         # as some functions require the image to have certain features
+      
         self.width = self.image.width
         self.height = self.image.height
         self.blit_to_texture = self.image.blit_to_texture
@@ -99,6 +100,9 @@ class Member():
 
     def get_name(self):
         return self.name
+    
+    def size(self):
+        return self.width, self.height
 
 
 class Board():
@@ -142,6 +146,13 @@ txt = Group(path, "Astro")
 photos = mx.get_members() + txt.get_members()
 random.shuffle(photos)
 
+scale = 0.5
+imx, imy = photos[0].size()
+imx *= scale
+imy *= scale
+imborder = 10
+
+
 # Create display
 display = pyglet.canvas.get_display()
 screens = display.get_screens()
@@ -154,7 +165,7 @@ window.set_size(window_width, 720)
 batch = pyglet.graphics.Batch()
 windowsize = window.get_size()
 num_photos = len(photos)
-fit_on_x = floor((windowsize[0] - 10) / 250)
+fit_on_x = floor((windowsize[0] - imborder) / imx)
 print("fit on x", fit_on_x)
 
 # Caclulate location for each sprite and save these values
@@ -165,15 +176,16 @@ x = 10
 y = 10
 for i, photo in enumerate(photos):
     sprites.append(pyglet.sprite.Sprite(img=photo, batch=batch, x=x, y=y))
+    sprites[i].update(scale=scale)
     sprite_locs.append((x, y))
     if (i + 1) % fit_on_x == 0:
-        x = 10
-        y += 330
+        x = imborder
+        y += imy + imborder
     else:
-        x += 250
+        x += imx + imborder
 
 # Set window height so that all images fit        
-window.set_size(window_width, y + 330)
+# window.set_size(window_width, y + imy)
 
 # Draw window
 @window.event
@@ -202,9 +214,9 @@ def on_mouse_press(x, y, button, modifiers):
         if i >= 0:
             old_x, old_y = sprite_locs[i]
             if not sprites_rotated[i]:
-                new_x = old_x + 240
-                new_y = old_y + 320
-                sprites[i].update(x=old_x+240, y=old_y+320, rotation=180)
+                # new_x = old_x + imx
+                # new_y = old_y + imy
+                sprites[i].update(x=old_x+imx, y=old_y+imy, rotation=180)
                 sprites_rotated[i] = True
             else:
                 sprites[i].update(x=old_x, y=old_y, rotation=0)
@@ -229,8 +241,8 @@ def locate_picture(mouse_x, mouse_y):
     If a person was not clicked: -1
     """
     for min_x, min_y in sprite_locs:
-        max_x = min_x + 240
-        max_y = min_y + 320
+        max_x = min_x + imx
+        max_y = min_y + imy
         if min_x < mouse_x and max_x > mouse_x and min_y < mouse_y and max_y > mouse_y:
             i = sprite_locs.index((min_x, min_y))
             return i
