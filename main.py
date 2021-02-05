@@ -91,7 +91,13 @@ class Member(pyglet.sprite.Sprite):
         self.filename = filename
         self.color_image = pyglet.image.load(folder + filename)
         self.colored = True # Initially the colored image is used
-        self.name, self.extension = filename.split(".")
+        split_filename = filename.split(".")
+        if filename.count(".") == 1:
+            self.name, self.extension = filename.split(".")
+        else:
+            split_filename = filename.split(".")
+            self.name = ".".join(split_filename[:-1])
+            self.extension = split_filename[-1:][0]
         self.get_texture = self.image.get_texture
         self.grey_path = self.folder + self.name + "_grey." + self.extension
         self.color_path = folder + filename
