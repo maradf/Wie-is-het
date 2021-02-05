@@ -5,6 +5,7 @@ from os import listdir
 import os.path
 import random
 from math import floor
+from PIL import Image
 
 class Group():
     """
@@ -15,19 +16,33 @@ class Group():
     name (str): name of the group, and name of the folder.
     """
     
-    def __init__(self, path, name):
+    def __init__(self, path, name, batch):
         self.path = path + name + "/"
         self.name = name
         self.members = []
         self.memberFiles = listdir(self.path)
-        self.load_members()
+        self.batch = batch
+        self.load_members(self.checkGrey())
+        
+    def checkGrey(self):
+        """ Checks if a grey scale image exists in the folder.
+            Returns True if yes, False if no.
+        """
+        for f in self.memberFiles:
+            if "grey" in f:
+                return True
+        return False
 
-    def load_members(self):
+    def load_members(self, grey):
         """
         Loads all members/information from the folder. 
         """
         for memberfile in self.memberFiles:
-            self.add_member(Member(self.name, self.path, memberfile))
+            # Only creates a member for each colored image.
+            if "grey" not in memberfile:
+                print(memberfile, self.name, self.path, grey)
+                self.add_member(Member(self.name, self.path, memberfile, self.batch, grey))
+            
 
     def __str__(self):
         return self.name
@@ -60,35 +75,64 @@ class Group():
         """ Gets self.path"""
         return self.path
 
-class Member():
+class Member(pyglet.sprite.Sprite):
     """
-    Class Member. Contains all information of a single member.
+    Class Member of type pyglet.sprite.Sprite
+    Contains all information of a single member.
 
     Init variables:
     group (str): Name of the group member belongs to.
     folder (str): Folder in which the image is saved.
     filename (str): Filename of the image.
     """
-    def __init__(self, group, folder, filename):
-        self.group = group
+    def __init__(self, group, folder, filename, batch, grey):
+        pyglet.sprite.Sprite.__init__(self, pyglet.image.load(folder + filename), batch=batch)
+        self.group_name = group
         self.folder = folder
         self.filename = filename
-        self.image = pyglet.image.load(folder + filename)
-        self.name = filename.split(".")[0]
-
-        # The following variables were required for subsequent code to work
-        # as some functions require the image to have certain features
-      
-        self.width = self.image.width
-        self.height = self.image.height
-        self.blit_to_texture = self.image.blit_to_texture
+        self.color_image = pyglet.image.load(folder + filename)
+        self.colored = True # Initially the colored image is used
+        self.name, self.extension = filename.split(".")
         self.get_texture = self.image.get_texture
+        self.grey_path = self.folder + self.name + "_grey." + self.extension
+        self.color_path = folder + filename
+        
+        if not grey:
+            self.make_grey_image()
+        self.grey_image = pyglet.image.load(self.grey_path)
+
+    def make_grey_image(self):
+        """ Creates the greyscale version of the image in question.
+        Saves it in the same folder with _grey added to the filename.
+        Returns None
+        """
+        img = Image.open(self.folder + self.filename).convert('L')
+        img.save(self.grey_name)
+        return None
+
+    def clicked(self):
+        """ Deals with the events of when an image is clicked.
+        Turns the image greyscale and redraws it.
+        Input: self
+        Output: None
+        """
+
+        if self.colored:
+            self.image = self.grey_image
+            self.colored = False
+            # self.update(x=self.x+self.width, y=self.y+self.height, rotation=180)
+        else:
+            self.image = self.color_image
+            self.colored = True
+            # self.update(x=self.x-self.width, y=self.y-self.height, rotation=0)
+        self.draw()
+        return None
 
     def __str__(self):
         return self.name
 
     def get_group(self):
-        return self.group
+        return self.group_name
 
     def get_folder(self):
         return self.folder
@@ -105,39 +149,6 @@ class Member():
     def size(self):
         return self.width, self.height
 
-
-class Board():
-
-    def __init__(self, groups, path="Groups/"):
-        self.people, self.names = load_people(groups, path)
-
-    def __str__(self):
-        return self.names
-    
-    def __len__(self):
-        return len(self.names)
-    
-    def get_names(self):
-        return self.names
-    
-    def get_people(self):
-        return self.people
-    
-    def get_image(self, name):
-        return self.people[self.names.index(name)]
-
-    
-    def load_people(groups, path):
-        people = []
-        names = []
-        for groupname in groups:
-            grouppath = path + groupname + "/"
-            for memberfile in listdir(grouppath):
-                member = Member(groupname, grouppath, memberfile)
-                people.append(member)
-                names.append(member.name)
-
-        return people, names
 
 path = "Groups/"
 
@@ -163,8 +174,9 @@ while group_input.lower() != "done":
         group_input = input("What other group would you like to add? When you're done, please type done.\n")
 
 photos = []
+batch = pyglet.graphics.Batch()
 for group_name in groups:
-    group = Group(path, group_name)
+    group = Group(path, group_name, batch)
     photos += group.get_members()
 random.shuffle(photos)
 
@@ -191,21 +203,19 @@ bottom_border = 20
 # Create display
 display = pyglet.canvas.get_display()
 screens = display.get_screens()
-window = pyglet.window.Window(fullscreen=True, style='dialog', caption="Wie Is Het? K-Pop Edition")
+window = pyglet.window.Window(style='dialog', caption="Wie Is Het? K-Pop Edition")
 window.set_minimum_size(320, 200)
 window_width = 1280
-# window.set_size(window_width, 720)
+window.set_size(window_width, 720)
 
-# Create batch
-batch = pyglet.graphics.Batch()
+# Calculate how many photos fit in one row
 windowsize = window.get_size()
 num_photos = len(photos)
 fit_on_x = floor((windowsize[0] - 2 * imborder) / (imx + imborder))
 
 # Caclulate location for each sprite and save these values
-sprites = []
 sprite_locs = []
-sprites_rotated = [False for photo in photos]
+grey_sprites = []
 x = imborder
 y = imborder
 
@@ -214,8 +224,7 @@ your_card_im.update(scale=scale)
 y += imy + bottom_border
 
 for i, photo in enumerate(photos):
-    sprites.append(pyglet.sprite.Sprite(img=photo, batch=batch, x=x, y=y))
-    sprites[i].update(scale=scale)
+    photo.update(x=x, y=y, scale=scale)
     sprite_locs.append((x, y))
     if (i + 1) % fit_on_x == 0:
         x = imborder
@@ -224,8 +233,8 @@ for i, photo in enumerate(photos):
         x += imx + imborder
 
 # Set window height so that all images fit 
-# window_height = y + imy + imborder
-# window.set_size(window_width, int(window_height))
+window_height = y + imy + imborder
+window.set_size(window_width, int(window_height))
 
 # Draw window
 @window.event
@@ -255,19 +264,7 @@ def on_mouse_press(x, y, button, modifiers):
     if button == mouse.LEFT:
         i = locate_picture(x, y)
         if i >= 0:
-            old_x, old_y = sprite_locs[i]
-            if not sprites_rotated[i]:
-                # new_x = old_x + imx
-                # new_y = old_y + imy
-                sprites[i].update(x=old_x+imx, y=old_y+imy, rotation=180)
-                sprites_rotated[i] = True
-            else:
-                sprites[i].update(x=old_x, y=old_y, rotation=0)
-                sprites_rotated[i] = False
-            sprites[i].draw()
-
-        else:
-            print("Please click on a picture.")
+            photos[i].clicked()
 
 def locate_picture(mouse_x, mouse_y):
     """
