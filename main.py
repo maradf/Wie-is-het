@@ -40,7 +40,6 @@ class Group():
         for memberfile in self.memberFiles:
             # Only creates a member for each colored image.
             if "grey" not in memberfile:
-                print(memberfile, self.name, self.path, grey)
                 self.add_member(Member(self.name, self.path, memberfile, self.batch, grey))
             
 
@@ -92,7 +91,13 @@ class Member(pyglet.sprite.Sprite):
         self.filename = filename
         self.color_image = pyglet.image.load(folder + filename)
         self.colored = True # Initially the colored image is used
-        self.name, self.extension = filename.split(".")
+        split_filename = filename.split(".")
+        if filename.count(".") == 1:
+            self.name, self.extension = filename.split(".")
+        else:
+            split_filename = filename.split(".")
+            self.name = ".".join(split_filename[:-1])
+            self.extension = split_filename[-1:][0]
         self.get_texture = self.image.get_texture
         self.grey_path = self.folder + self.name + "_grey." + self.extension
         self.color_path = folder + filename
@@ -107,7 +112,7 @@ class Member(pyglet.sprite.Sprite):
         Returns None
         """
         img = Image.open(self.folder + self.filename).convert('L')
-        img.save(self.grey_name)
+        img.save(self.grey_path)
         return None
 
     def clicked(self):
@@ -151,26 +156,30 @@ class Member(pyglet.sprite.Sprite):
 
 
 path = "Groups/"
-
+possible_groups = listdir(path)
 # Set up MX and TXT data and shuffle
 print("Hi, welcome to Wie is Het? Please enter the groups you would like to use for this game below, one by one. ")
 print("So, if you want to play a game using both Monsta X and GOT7, first type Monsta X, then press enter, then type GOT7, then press enter.")
 print("Please use the same capitalisation structure as the folders in your system.")
 print("Once you have added all the groups you want to add, type done")
+print("The possible groups are:")
+print(", ".join(possible_groups))
 group_input = input("What group would you like to add first?\n")
 groups = []
-while group_input.lower() != "done":
+while group_input.lower() != "done" or not possible_groups:
     if not os.path.exists(path + group_input + "/"):
         print("\nSorry, I don't know the group " + group_input + ".")
         group_input = input("Please try again.\n")
     else:
         groups.append(group_input)
+        possible_groups.remove(group_input)
         if len(groups) == 1:
             prints = group_input
         else: 
             prints = ', '.join(groups)
         print("\nYour currently selected groups are: " + prints)
-    
+        print("The possible groups left to choose are:")
+        print(", ".join(possible_groups))
         group_input = input("What other group would you like to add? When you're done, please type done.\n")
 
 photos = []
