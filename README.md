@@ -16,5 +16,5 @@ Install these packages (if you do not have them installed yet) one by one by run
 
 Then, run the game by typing ```python3 main.py``` in the terminal.
 
-All images should be the same size, and put into folders in the Group folder. For each pack of images (a group of people) use one folder. Then you can mix and groups as you would like. 
+All images should be the same size, and put into subfolders in the "Groups/" folder. For each pack of images (a group of people) use one folder. Then you can mix and groups as you would like. 
 
