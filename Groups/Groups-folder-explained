@@ -1,0 +1,4 @@
+This folder should contain all folders of the groups containing pictures. 
+So, let's group Example contains Anna, Bob and Christina, then there should
+be a folder called 'Example/' containing three friles, one called Anna.extension,
+Bob.extension and one called Christina.extension.
