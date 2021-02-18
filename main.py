@@ -166,13 +166,17 @@ print("The possible groups are:")
 print(", ".join(possible_groups))
 group_input = input("What group would you like to add first?\n")
 groups = []
+pos_groups_lower = [group.lower() for group in possible_groups]
 while group_input.lower() != "done" or not possible_groups:
     if not os.path.exists(path + group_input + "/"):
         print("\nSorry, I don't know the group " + group_input + ".")
         group_input = input("Please try again.\n")
     else:
         groups.append(group_input)
-        possible_groups.remove(group_input)
+        i = pos_groups_lower.index(group_input.lower())
+        possible_groups.pop(i)
+        pos_groups_lower.pop(i)
+        print(possible_groups)
         if len(groups) == 1:
             prints = group_input
         else: 
