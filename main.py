@@ -237,13 +237,14 @@ your_card_im.update(scale=scale)
 y += imy + bottom_border
 
 for i, photo in enumerate(photos):
+    imx, imy = photo.size()
     photo.update(x=x, y=y, scale=scale)
     sprite_locs.append((x, y))
     if (i + 1) % fit_on_x == 0:
         x = imborder
-        y += imy + imborder
+        y += imy*scale + imborder
     else:
-        x += imx + imborder
+        x += imx*scale + imborder
 
 # Set window height so that all images fit 
 window_height = y + imy + imborder
