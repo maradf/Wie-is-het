@@ -157,6 +157,8 @@ class Member(pyglet.sprite.Sprite):
 
 path = "Groups/"
 possible_groups = listdir(path)
+if "Groups-folder-explained" in possible_groups:
+    possible_groups.remove("Groups-folder-explained")
 # Set up MX and TXT data and shuffle
 print("Hi, welcome to Wie is Het? Please enter the groups you would like to use for this game below, one by one. ")
 print("So, if you want to play a game using both Monsta X and GOT7, first type Monsta X, then press enter, then type GOT7, then press enter.")
@@ -216,18 +218,20 @@ bottom_border = 20
 # Create display
 display = pyglet.canvas.get_display()
 screens = display.get_screens()
-window = pyglet.window.Window(style='dialog', caption="Wie Is Het? K-Pop Edition")
+window = pyglet.window.Window(fullscreen=True,style='dialog', caption="Wie Is Het? K-Pop Edition")
+# window = pyglet.window.Window(style='dialog', caption="Wie Is Het? K-Pop Edition")
 window.set_minimum_size(320, 200)
 window_width = 1280
-window.set_size(window_width, 720)
+# window.set_size(window_width, 720)
 
 # Calculate how many photos fit in one row
-windowsize = window.get_size()
-num_photos = len(photos)
-fit_on_x = floor((windowsize[0] - 2 * imborder) / (imx + imborder))
+windowx, windowy = window.get_size()
+# num_photos = len(photos)
+# fit_on_x = floor((windowsize[0] - 2 * imborder) / (imx + imborder))
 
 # Caclulate location for each sprite and save these values
 sprite_locs = []
+im_sizes = []
 grey_sprites = []
 x = imborder
 y = imborder
@@ -237,17 +241,27 @@ your_card_im.update(scale=scale)
 y += imy + bottom_border
 
 for i, photo in enumerate(photos):
-    photo.update(x=x, y=y, scale=scale)
-    sprite_locs.append((x, y))
-    if (i + 1) % fit_on_x == 0:
+    imx, imy = photo.size()
+    imx *= scale
+    imy *= scale
+    if x + imx + imborder > windowx:
         x = imborder
         y += imy + imborder
-    else:
-        x += imx + imborder
+    photo.update(x=x, y=y, scale=scale)
+    sprite_locs.append((x, y))
+    im_sizes.append((imx, imy))
+    x += imx + imborder
+    if x > windowx:
+        x = imborder
+        y += imy + imborder
+    # if (i + 1) % fit_on_x == 0:
+        
+    # else:
+    #     x += imx*scale + imborder
 
 # Set window height so that all images fit 
-window_height = y + imy + imborder
-window.set_size(window_width, int(window_height))
+# window_height = y + imy + imborder
+# window.set_size(window_width, int(window_height))
 
 # Draw window
 @window.event
@@ -262,14 +276,14 @@ def on_draw():
 def on_key_press(symbol, modifiers):
     print('A key was pressed')
 
-@window.event
-def on_key_press(symbol, modifiers):
-    if symbol == key.A:
-        print('The "A" key was pressed.')
-    elif symbol == key.LEFT:
-        print('The left arrow key was pressed.')
-    elif symbol == key.ENTER:
-        print('The enter key was pressed.')
+# @window.event
+# def on_key_press(symbol, modifiers):
+#     if symbol == key.A:
+#         print('The "A" key was pressed.')
+#     elif symbol == key.LEFT:
+#         print('The left arrow key was pressed.')
+#     elif symbol == key.ENTER:
+#         print('The enter key was pressed.')
 
 # Events for when mouse button is pressed
 @window.event
@@ -293,12 +307,15 @@ def locate_picture(mouse_x, mouse_y):
 
     If a person was not clicked: -1
     """
+    i = 0
     for min_x, min_y in sprite_locs:
-        max_x = min_x + imx
-        max_y = min_y + imy
+        max_x = min_x + im_sizes[i][0]
+        max_y = min_y + im_sizes[i][1]
         if min_x < mouse_x and max_x > mouse_x and min_y < mouse_y and max_y > mouse_y:
-            i = sprite_locs.index((min_x, min_y))
-            return i
+            index = sprite_locs.index((min_x, min_y))
+            return index
+        
+        i += 1
     return -1
 
 pyglet.app.run() 
