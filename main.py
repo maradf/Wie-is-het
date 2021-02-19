@@ -231,6 +231,7 @@ windowx, windowy = window.get_size()
 
 # Caclulate location for each sprite and save these values
 sprite_locs = []
+im_sizes = []
 grey_sprites = []
 x = imborder
 y = imborder
@@ -241,15 +242,18 @@ y += imy + bottom_border
 
 for i, photo in enumerate(photos):
     imx, imy = photo.size()
-    if x + imx*scale + imborder > windowx:
+    imx *= scale
+    imy *= scale
+    if x + imx + imborder > windowx:
         x = imborder
-        y += imy*scale + imborder
+        y += imy + imborder
     photo.update(x=x, y=y, scale=scale)
     sprite_locs.append((x, y))
-    x += imx*scale + imborder
+    im_sizes.append((imx, imy))
+    x += imx + imborder
     if x > windowx:
         x = imborder
-        y += imy*scale + imborder
+        y += imy + imborder
     # if (i + 1) % fit_on_x == 0:
         
     # else:
@@ -272,14 +276,14 @@ def on_draw():
 def on_key_press(symbol, modifiers):
     print('A key was pressed')
 
-@window.event
-def on_key_press(symbol, modifiers):
-    if symbol == key.A:
-        print('The "A" key was pressed.')
-    elif symbol == key.LEFT:
-        print('The left arrow key was pressed.')
-    elif symbol == key.ENTER:
-        print('The enter key was pressed.')
+# @window.event
+# def on_key_press(symbol, modifiers):
+#     if symbol == key.A:
+#         print('The "A" key was pressed.')
+#     elif symbol == key.LEFT:
+#         print('The left arrow key was pressed.')
+#     elif symbol == key.ENTER:
+#         print('The enter key was pressed.')
 
 # Events for when mouse button is pressed
 @window.event
@@ -303,12 +307,15 @@ def locate_picture(mouse_x, mouse_y):
 
     If a person was not clicked: -1
     """
+    i = 0
     for min_x, min_y in sprite_locs:
-        max_x = min_x + imx
-        max_y = min_y + imy
+        max_x = min_x + im_sizes[i][0]
+        max_y = min_y + im_sizes[i][1]
         if min_x < mouse_x and max_x > mouse_x and min_y < mouse_y and max_y > mouse_y:
-            i = sprite_locs.index((min_x, min_y))
-            return i
+            index = sprite_locs.index((min_x, min_y))
+            return index
+        
+        i += 1
     return -1
 
 pyglet.app.run() 
