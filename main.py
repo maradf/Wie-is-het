@@ -1,11 +1,32 @@
-import pyglet
-from pyglet.window import key
-from pyglet.window import mouse
+#!python3 main.py
+# -*- coding: utf-8 -*-
+
+"""
+{This file allows you to play the game Guess Who? (Wie Is Het? in Dutch)}
+"""
+
+# Built-in/Generic Imports
 from os import listdir
 import os.path
 import random
 from math import floor
+
+# Libs
+import pyglet
+from pyglet.window import key
+from pyglet.window import mouse
 from PIL import Image
+
+
+
+__author__ = 'Mara Fennema'
+__copyright__ = 'Copyright 2021, Wie-is-het'
+__credits__ = ['Mara Fennema']
+__version__ = '1.0.0'
+__maintainer__ = 'Mara Fennema'
+__email__ = 'maradfennema@gmail.com'
+__status__ = 'Dev'
+
 
 class Group():
     """
@@ -272,9 +293,9 @@ def on_draw():
     # text_sprite.draw()
     your_card_im.draw()
 
-@window.event
-def on_key_press(symbol, modifiers):
-    print('A key was pressed')
+# @window.event
+# def on_key_press(symbol, modifiers):
+#     print('A key was pressed')
 
 # @window.event
 # def on_key_press(symbol, modifiers):
