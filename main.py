@@ -157,6 +157,8 @@ class Member(pyglet.sprite.Sprite):
 
 path = "Groups/"
 possible_groups = listdir(path)
+if "Groups-folder-explained" in possible_groups:
+    possible_groups.remove("Groups-folder-explained")
 # Set up MX and TXT data and shuffle
 print("Hi, welcome to Wie is Het? Please enter the groups you would like to use for this game below, one by one. ")
 print("So, if you want to play a game using both Monsta X and GOT7, first type Monsta X, then press enter, then type GOT7, then press enter.")
@@ -216,15 +218,16 @@ bottom_border = 20
 # Create display
 display = pyglet.canvas.get_display()
 screens = display.get_screens()
-window = pyglet.window.Window(style='dialog', caption="Wie Is Het? K-Pop Edition")
+window = pyglet.window.Window(fullscreen=True,style='dialog', caption="Wie Is Het? K-Pop Edition")
+# window = pyglet.window.Window(style='dialog', caption="Wie Is Het? K-Pop Edition")
 window.set_minimum_size(320, 200)
 window_width = 1280
-window.set_size(window_width, 720)
+# window.set_size(window_width, 720)
 
 # Calculate how many photos fit in one row
-windowsize = window.get_size()
-num_photos = len(photos)
-fit_on_x = floor((windowsize[0] - 2 * imborder) / (imx + imborder))
+windowx, windowy = window.get_size()
+# num_photos = len(photos)
+# fit_on_x = floor((windowsize[0] - 2 * imborder) / (imx + imborder))
 
 # Caclulate location for each sprite and save these values
 sprite_locs = []
@@ -238,17 +241,23 @@ y += imy + bottom_border
 
 for i, photo in enumerate(photos):
     imx, imy = photo.size()
-    photo.update(x=x, y=y, scale=scale)
-    sprite_locs.append((x, y))
-    if (i + 1) % fit_on_x == 0:
+    if x + imx*scale + imborder > windowx:
         x = imborder
         y += imy*scale + imborder
-    else:
-        x += imx*scale + imborder
+    photo.update(x=x, y=y, scale=scale)
+    sprite_locs.append((x, y))
+    x += imx*scale + imborder
+    if x > windowx:
+        x = imborder
+        y += imy*scale + imborder
+    # if (i + 1) % fit_on_x == 0:
+        
+    # else:
+    #     x += imx*scale + imborder
 
 # Set window height so that all images fit 
-window_height = y + imy + imborder
-window.set_size(window_width, int(window_height))
+# window_height = y + imy + imborder
+# window.set_size(window_width, int(window_height))
 
 # Draw window
 @window.event
