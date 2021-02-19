@@ -4,11 +4,11 @@
 
 To be able to run the game, some packages are required. These packages are as follows:
 
-- ```pyglet```
 - ```os```
 - ```random```
 - ```math```
 - ```pillow```
+- ```pyglet```
 
 Install these packages (if you do not have them installed yet) one by one by running the following command in your terminal:
 
